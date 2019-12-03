@@ -105,7 +105,7 @@ public class FileService {
         save.setType(FileTypeEnum.getFileTypeStr(uploadFileName).toLowerCase());
         // save.setMd5(Util.getFileMD5(new FileInputStream(saveFile)));
         save.setPath(saveFile.getAbsolutePath());
-        save.setUrl(FILE_DOMAIN + saveFileName);
+        save.setUrl(convertLocalPath2HttpUrl(FILE_DOMAIN + saveFileName));
         save.setLength(file.getSize());
         return save;
     }
@@ -135,6 +135,14 @@ public class FileService {
         }
         String fileType = srcFilename.substring(indexOf);
         return UUID.randomUUID().toString() + fileType;
+    }
+
+
+    /**
+     * 本地文件路径转化为 http url
+     */
+    private static String convertLocalPath2HttpUrl(String localPath) {
+        return localPath.replaceAll("\\\\", "/");
     }
 
 }
