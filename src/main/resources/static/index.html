@@ -10,13 +10,16 @@
     <link rel="stylesheet" href="js/layui/css/layui.css" media="all">
 </head>
 
-
 <body class="layui-layout-body">
 
 
 <div class="layui-layout layui-layout-admin">
 
     <div class="layui-body" style="position: static">
+
+        <div class="layui-progress layui-progress-big" lay-showPercent="yes" lay-filter="fileProgress">
+            <div class="layui-progress-bar layui-bg-blue" lay-percent="0%"></div>
+        </div>
 
         <div class="layui-btn-group opToolBut">
             <button class="layui-btn layui-btn-lg layui-btn-warm" id="uploaNewdFile">
@@ -28,7 +31,6 @@
         </div>
         <!--元数据表格-->
         <table id="fileListTable" lay-filter="opDataTool" style="margin-left: 0"></table>
-
     </div>
 
 </div>
@@ -44,8 +46,6 @@
         fileTable.render({
             id: 'fileListTable',
             elem: '#fileListTable',
-            // height: 800,
-            // width: 1600,
             height: 'full-150', //自适应高度，距离浏览器上下总和
             skin: 'line', //行边框风格
             even: true, //开启隔行背景
@@ -149,15 +149,18 @@
     });
 
     // 上传图片
-    layui.use('upload', function () {
-        var upload = layui.upload;
+    layui.use(['upload', 'element'], function () {
+        var upload = layui.upload, element = layui.element;
         //执行实例
         upload.render({
             elem: '#uploaNewdFile',
             url: '/v0/api/file/upload',
             accept: 'file',
+            progress: function (n, elem) {
+                element.progress('fileProgress', n + '%');
+            },
             before: function (obj) {
-                layer.load(); //上传loading
+                layer.load(2);
             },
             done: function (res) {
                 if (res.id > 0) {
