@@ -1,0 +1,180 @@
+<!--Create by RMC on  -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>文件管理</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="js/layui/css/layui.css" media="all">
+</head>
+
+
+<body class="layui-layout-body">
+
+
+<div class="layui-layout layui-layout-admin">
+
+    <div class="layui-body" style="position: static">
+
+        <div class="layui-btn-group opToolBut">
+            <button class="layui-btn layui-btn-lg layui-btn-warm" id="uploaNewdFile">
+                <i class="layui-icon">&#xe67c;</i>上传文件
+            </button>
+            <button class="layui-btn layui-btn-lg layui-btn-danger" data-type="deleteFiles" style="margin-left: 100px">
+                删除文件
+            </button>
+        </div>
+        <!--元数据表格-->
+        <table id="fileListTable" lay-filter="opDataTool" style="margin-left: 0"></table>
+
+    </div>
+
+</div>
+<script src="js/layui/layui.all.js" charset="utf-8"></script>
+<script>
+
+    // 0 感叹号， 1 正确， 2 错误，3 问号 ，4 加密 ，5 哭脸  ，6 笑脸
+    var global_fileTable;
+    layui.use(['laydate', 'laypage', 'layer', 'table', 'carousel', 'upload', 'element', 'slider'], function () {
+
+        var fileTable = layui.table, upload = layui.upload;
+        global_fileTable = fileTable;
+        fileTable.render({
+            id: 'fileListTable',
+            elem: '#fileListTable',
+            // height: 800,
+            // width: 1600,
+            height: 'full-150', //自适应高度，距离浏览器上下总和
+            skin: 'line', //行边框风格
+            even: true, //开启隔行背景
+            size: 'lg', //小尺寸的表格
+            url: '/v0/api/file/findByCondition',
+            method: 'get',
+            request: {
+                pageName: 'page'//页码的参数名称，默认：page,
+            },
+            parseData: function (res) { //res 即为原始返回的数据
+                return {
+                    "code": 0, //解析接口状态
+                    "msg": '', //解析提示文本
+                    "count": res.totalElements, //解析数据长度
+                    "data": res.content //解析数据列表
+                };
+            },
+            //开启分页
+            page: { //支持传入 laypage 组件的所有参数（某些参数除外，如：jump/elem） - 详见文档
+                layout: ['limit', 'count', 'prev', 'page', 'next', 'skip', 'refresh'],  //自定义分页布局
+                curr: 1, //设定初始在第 1 页
+                groups: 5, //显示连续页码
+                prev: '上一页',
+                next: '下一页',
+                first: '首页', //首页
+                last: '尾页', //尾页
+                limit: 200, //初始limit
+                limits: [200]
+
+            },
+            cols: [[ //表头
+                {
+                    field: 'id',
+                    type: 'radio'
+                },
+                {
+                    title: '序号',
+                    type: 'numbers'
+                },
+                {
+                    field: 'filename',
+                    title: '文件名',
+                    templet: function (d) {
+                        return '<a href="' + d.url + '" target="_blank" style="color:#007DDB;">' + d.filename + '</a>'
+                    }
+                },
+                {
+                    field: 'length',
+                    title: '大小',
+                    width: 160,
+                    templet: function (d) {
+                        var len = d.length;
+                        if (len < 1024) {
+                            return len + " B";
+                        }
+                        len = len / 1024;
+                        if (len < 1024) {
+                            return len.toFixed(1) + " KB";
+                        }
+                        len = len / 1024;
+                        if (len < 1024) {
+                            return len.toFixed(1) + " MB";
+                        }
+                        len = len / 1024;
+                        if (len < 1024) {
+                            return len.toFixed(1) + " GB";
+                        }
+                    }
+                }
+
+            ]]
+        });
+
+        //监听自定义事件
+        var $ = layui.$, active = {
+            deleteFiles: function () { //获取选中数目
+                var checkStatus = fileTable.checkStatus('fileListTable'), data = checkStatus.data;
+                var fid = data[0].id;
+                layer.confirm('确定删除:' + data[0].filename, function (index) {
+                    $.ajax({
+                        type: 'POST',
+                        url: "/v0/api/file/deleteOne?fid=" + fid,
+                        dataType: 'json',
+                        success: function (data) {
+                            if (data.id === fid) {
+                                fileTable.reload('fileListTable');
+                                layer.msg('删除 ' + data.filename, {icon: 6});
+                            } else {
+                                layer.alert('删除异常' + data, {icon: 1})
+                            }
+                        }
+                    });
+                });
+            }
+        };
+
+        $('.opToolBut .layui-btn').on('click', function () {
+            var type = $(this).data('type');
+            active[type] ? active[type].call(this) : '';
+        });
+    });
+
+    // 上传图片
+    layui.use('upload', function () {
+        var upload = layui.upload;
+        //执行实例
+        upload.render({
+            elem: '#uploaNewdFile',
+            url: '/v0/api/file/upload',
+            accept: 'file',
+            before: function (obj) {
+                layer.load(); //上传loading
+            },
+            done: function (res) {
+                if (res.id > 0) {
+                    global_fileTable.reload('fileListTable');
+                    layer.msg(res.filename, {icon: 1});
+                } else {
+                    layer.msg('上传失败' + res, {icon: 2});
+                }
+                layer.closeAll('loading'); //关闭loading
+            },
+            error: function (res) {
+                layer.msg('上传失败' + res, {icon: 2});
+            }
+        });
+    });
+
+</script>
+</body>
+</html>
+
