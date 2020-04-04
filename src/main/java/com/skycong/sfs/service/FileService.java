@@ -28,8 +28,15 @@ public class FileService {
     @Value("${diskPath}")
     private String DISK_PATH;
 
+
+
     @Value("${fileDomain}")
     private String FILE_DOMAIN;
+	
+	@Value("${fileDirType}")
+    private Integer fileDirType;
+
+
 
     private static final String SEPARATOR = File.separator;
 
@@ -88,7 +95,12 @@ public class FileService {
      */
     private FileModel saveNetFileToLocal(MultipartFile file) throws Exception {
         String uploadFileName = file.getOriginalFilename();
-        String dir = generateFileDir();
+		  String dir;
+		if(fileDirType==1){
+			dir = FileTypeEnum.getFileTypeStr(uploadFileName).toLowerCase()+SEPARATOR;
+		}else{
+			dir = generateFileDir();
+		}
         File directory = new File(DISK_PATH + dir);
         if (!directory.exists()) {
             directory.mkdirs();
