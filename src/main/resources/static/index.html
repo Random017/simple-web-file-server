@@ -114,7 +114,14 @@
                             return len.toFixed(1) + " GB";
                         }
                     }
-                }
+                },
+                {
+                    field: 'qrCode',
+                    title: '二维码',
+                    templet: function (d) {
+                        return '<img  id="pitureChange" src="' + d.qrCode + '" height="100%"/>'
+                    }
+                },
 
             ]]
         });
@@ -146,6 +153,27 @@
             var type = $(this).data('type');
             active[type] ? active[type].call(this) : '';
         });
+
+        $(document).on("mouseout", ".layui-table-main tr", function (data) {
+            console.log(data)
+//可以理解为鼠标移动到table时拿到了该行表格的所有数据，
+//然后判断 data.relatedTarget.id 是否等于上面定义的<img> 的id  pitureChange
+            if (data.relatedTarget.id == "pitureChange") {
+                //拿到 id 为 pitureChange img的 属性
+                var data = data.fromElement.innerHTML;
+                //由于是整个img 我们只需要图片地址 进行截取
+                var arr = data.split('src="')[1].split('>')[0];
+                //判断是否是图片格式，为图片格式则走openMsg分支
+                if (!/.(gif|jpg|jpeg|png|gif|jpg|png)$/.test(arr)) {
+                    var data = '<img id="pitureChange" style="width: 300px;height: 300px" src="' + arr + '"  >'
+                    layer.msg(data, {
+                        offset: 'r',
+                        time: 30000
+                    });
+                }
+            }
+        });
+
     });
 
     // 上传图片

@@ -3,6 +3,7 @@ package com.skycong.sfs.service;
 import com.skycong.sfs.dao.model.FileModel;
 import com.skycong.sfs.dao.repository.FileRepository;
 import com.skycong.sfs.util.Util;
+import com.skycong.sfs.util.qrcode.code.QRCodeMain;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
@@ -29,13 +30,11 @@ public class FileService {
     private String DISK_PATH;
 
 
-
     @Value("${fileDomain}")
     private String FILE_DOMAIN;
-	
-	@Value("${fileDirType}")
-    private Integer fileDirType;
 
+    @Value("${fileDirType}")
+    private Integer fileDirType;
 
 
     private static final String SEPARATOR = File.separator;
@@ -61,8 +60,15 @@ public class FileService {
         }
         fileModel.setFilename(filename);
         fileModel.setMd5(fileMD5);
+        fileModel.setQrCode(saveQrCode(fileModel.getUrl(), filename));
         fileRepository.save(fileModel);
         return fileModel;
+    }
+
+    private String saveQrCode(String content, String filename) {
+        String encode = QRCodeMain.encode(content, DISK_PATH + "qrcode", filename);
+        String s = encode.substring(DISK_PATH.length());
+        return convertLocalPath2HttpUrl(FILE_DOMAIN + s);
     }
 
 
@@ -95,12 +101,12 @@ public class FileService {
      */
     private FileModel saveNetFileToLocal(MultipartFile file) throws Exception {
         String uploadFileName = file.getOriginalFilename();
-		  String dir;
-		if(fileDirType==1){
-			dir = FileTypeEnum.getFileTypeStr(uploadFileName).toLowerCase()+SEPARATOR;
-		}else{
-			dir = generateFileDir();
-		}
+        String dir;
+        if (fileDirType == 1) {
+            dir = FileTypeEnum.getFileTypeStr(uploadFileName).toLowerCase() + SEPARATOR;
+        } else {
+            dir = generateFileDir();
+        }
         File directory = new File(DISK_PATH + dir);
         if (!directory.exists()) {
             directory.mkdirs();

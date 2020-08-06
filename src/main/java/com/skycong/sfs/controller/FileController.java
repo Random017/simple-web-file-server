@@ -28,7 +28,6 @@ public class FileController {
         return fileService.updateOneFile(file);
     }
 
-
     @PostMapping("deleteOne")
     Object deleteOne(Integer fid) {
         if (fid == null) return "error fid";

@@ -45,6 +45,11 @@ public class FileModel implements Serializable {
 
     private Long length;
 
+    /**
+     * 二维码
+     */
+    private String qrCode;
+
     public Integer getId() {
         return id;
     }
@@ -101,6 +106,14 @@ public class FileModel implements Serializable {
         this.length = length;
     }
 
+    public String getQrCode() {
+        return qrCode;
+    }
+
+    public void setQrCode(String qrCode) {
+        this.qrCode = qrCode;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("FileModel{");
@@ -111,6 +124,7 @@ public class FileModel implements Serializable {
         sb.append(", url='").append(url).append('\'');
         sb.append(", path='").append(path).append('\'');
         sb.append(", length=").append(length);
+        sb.append(", qrCode=").append(qrCode);
         sb.append('}');
         return sb.toString();
     }
