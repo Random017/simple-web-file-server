@@ -2,6 +2,7 @@ package com.skycong.sfs.util;
 
 import java.io.InputStream;
 import java.security.MessageDigest;
+import java.util.List;
 
 /**
  * @author ruanmingcong 2019.12.3 13:05
@@ -51,4 +52,55 @@ public class Util {
         }
         return messageDigest.digest();
     }
+
+    public static String checkAndGenerateFilename(List<String> directoryFileList, String originFileName) {
+        return checkAndGenerateFilename(directoryFileList, originFileName, 1);
+    }
+
+    /**
+     * 检查并生成新文件名
+     * eg： aaa-->aaa(1)-->aaa(2)<br/>
+     * aaa.jpg-->aaa(1).jpg--->aaa(2).jpg<br/>
+     * aaa(1)bbb.jpg-->aaa(1)bbb(1).jpg
+     *
+     * @param directoryFileList 同目录下文件名列表
+     * @param originFileName    源文件名
+     * @param order             生成序号
+     * @return
+     */
+    public static String checkAndGenerateFilename(List<String> directoryFileList, String originFileName, int order) {
+        if (directoryFileList == null || directoryFileList.isEmpty()) return originFileName;
+        if (directoryFileList.contains(originFileName)) {
+            String prefix, suffix;
+            int index = originFileName.indexOf(POINT);
+            if (index < 0) {
+                prefix = originFileName;
+                suffix = "";
+            } else {
+                prefix = originFileName.substring(0, index);
+                suffix = originFileName.substring(index);
+            }
+            //重命名操作
+            if (prefix.endsWith(")")) {
+                int sindex = prefix.lastIndexOf("(");
+                int eindex = prefix.lastIndexOf(")");
+                //满足条件
+                if (sindex >= 0 && eindex > sindex + 1) {
+                    String orderStr = prefix.substring(sindex + 1, eindex);
+                    try {
+                        Integer.valueOf(orderStr);
+                        order++;
+                        prefix = prefix.substring(0, sindex);
+                    } catch (Exception e) {
+                        // ignore
+                    }
+                }
+            }
+            originFileName = prefix + "(" + order + ")" + suffix;
+            return checkAndGenerateFilename(directoryFileList, originFileName, order);
+        }
+        return originFileName;
+    }
+
+    public static final String POINT = ".";
 }

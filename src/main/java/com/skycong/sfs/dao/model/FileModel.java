@@ -50,6 +50,8 @@ public class FileModel implements Serializable {
      */
     private String qrCode;
 
+    private Long createAt;
+
     public Integer getId() {
         return id;
     }
@@ -114,6 +116,14 @@ public class FileModel implements Serializable {
         this.qrCode = qrCode;
     }
 
+    public Long getCreateAt() {
+        return createAt;
+    }
+
+    public void setCreateAt(Long createAt) {
+        this.createAt = createAt;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("FileModel{");
@@ -125,6 +135,7 @@ public class FileModel implements Serializable {
         sb.append(", path='").append(path).append('\'');
         sb.append(", length=").append(length);
         sb.append(", qrCode=").append(qrCode);
+        sb.append(", createAt=").append(createAt);
         sb.append('}');
         return sb.toString();
     }

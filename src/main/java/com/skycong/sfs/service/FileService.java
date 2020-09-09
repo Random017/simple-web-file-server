@@ -17,8 +17,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
 
 /**
  * @author ruanmingcong 2019.12.3 11:35
@@ -42,6 +44,9 @@ public class FileService {
     @Autowired
     private FileRepository fileRepository;
 
+    /**
+     * 保存单文件上传
+     */
     public Object updateOneFile(MultipartFile file) throws IOException {
         String fileMD5 = Util.getFileMD5(file.getInputStream());
         FileModel byMd5 = fileRepository.findByMd5(fileMD5);
@@ -61,10 +66,14 @@ public class FileService {
         fileModel.setFilename(filename);
         fileModel.setMd5(fileMD5);
         fileModel.setQrCode(saveQrCode(fileModel.getUrl(), filename));
+        fileModel.setCreateAt(System.currentTimeMillis());
         fileRepository.save(fileModel);
         return fileModel;
     }
 
+    /**
+     * 生成并保存文件URL 二维码
+     */
     private String saveQrCode(String content, String filename) {
         String encode = QRCodeMain.encode(content, DISK_PATH + "qrcode", filename);
         String s = encode.substring(DISK_PATH.length());
@@ -111,7 +120,8 @@ public class FileService {
         if (!directory.exists()) {
             directory.mkdirs();
         }
-        String newFileName = generateFileName(uploadFileName);
+        ArrayList<String> strings = new ArrayList<>(Arrays.asList(Objects.requireNonNull(directory.list())));
+        String newFileName = Util.checkAndGenerateFilename(strings, uploadFileName);
         String saveFileName = dir + newFileName;
         File saveFile = new File(DISK_PATH + saveFileName);
         if (!saveFile.exists()) {
@@ -119,7 +129,7 @@ public class FileService {
         }
         file.transferTo(saveFile);
         FileModel save = new FileModel();
-        save.setFilename(uploadFileName);
+        save.setFilename(newFileName);
         save.setType(FileTypeEnum.getFileTypeStr(uploadFileName).toLowerCase());
         // save.setMd5(Util.getFileMD5(new FileInputStream(saveFile)));
         save.setPath(saveFile.getAbsolutePath());
@@ -141,20 +151,6 @@ public class FileService {
         int hour = now1.getHour();
         return year + SEPARATOR + monthValue + SEPARATOR + dayOfMonth + SEPARATOR + hour + SEPARATOR;
     }
-
-    /**
-     * 随机生成新的文件名
-     * eg：bacdf87857214ed3bb751de81f52ce33.jpg
-     */
-    private static String generateFileName(String srcFilename) {
-        int indexOf = srcFilename.lastIndexOf(".");
-        if (indexOf < 0) {
-            return srcFilename;
-        }
-        String fileType = srcFilename.substring(indexOf);
-        return UUID.randomUUID().toString() + fileType;
-    }
-
 
     /**
      * 本地文件路径转化为 http url
