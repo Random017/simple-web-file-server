@@ -197,6 +197,7 @@
             elem: '#uploaNewdFile',
             url: '/v0/api/file/upload',
             accept: 'file',
+            multiple: true,
             progress: function (n, elem) {
                 element.progress('fileProgress', n + '%');
             },
@@ -214,6 +215,7 @@
             },
             error: function (res) {
                 layer.msg('上传失败' + res, {icon: 2});
+                layer.closeAll('loading'); //关闭loading
             }
         });
     });
